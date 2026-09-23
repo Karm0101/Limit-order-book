@@ -169,6 +169,31 @@ void accept_order(bool is_buy, unsigned short quantity, bool is_limit, float lim
 	++new_id;
 }
 
+// Cancels orders using their ID only
+void cancel_order(unsigned int id)
+{
+	// Using the iterator associated with the order, it is deleted from its price list
+	if (index_map[id].is_buy)
+	{
+		bids[index_map[id].limit_price].erase(index_map[id].c_it);
+		--bids_depth;
+
+		// If empty, delete the limit price list from the order's map
+		bids.erase((index_map[id].limit_price));
+	}
+	else
+	{
+		asks[index_map[id].limit_price].erase(index_map[id].c_it);
+		--asks_depth;
+
+		// If empty, delete the limit price list from the order's map
+		bids.erase((index_map[id].limit_price));
+	}
+
+	// Delete the order from index_map
+	index_map.erase(id);
+}
+
 // Calculates the difference between the highest bid and the lowest ask
 std::optional<float> calculate_spread()
 {
