@@ -43,25 +43,123 @@ void accept_order(bool is_buy, unsigned short quantity, bool is_limit, float lim
 
 	if (is_limit)
 	{
+		// Flag used to decide whether to add new orders or not
+		// Set to 1 by default as orders are not guaranteed to cross the spread
+		bool to_add { 1 };
+
 		if (is_buy)
 		{
-			bids[limit_price].push_back(new_order);
-			// Iterator of new bid is retrieved and stored for fast lookup
-			auto it{ std::prev(bids[limit_price].end()) };
+			// Order matching logic
 
-			index_map[new_id] = { 1, limit_price, it };
+			auto temp_quantity = quantity;										// Keeps track of current order's quantity without continuously updating
+			// Ensures that as long as the spread is crossed and there are orders, they will be matched
+			while (!asks.begin()->second.empty() && limit_price >= asks.begin()->first && to_add)
+			{
+				if (temp_quantity > asks.begin()->second.front().quantity)		// New order has a greater quantity than target order
+				{
+					temp_quantity -= asks.begin()->second.front().quantity;		// Subtract from the quantity of the current order as its quantity > 0
+					asks.begin()->second.pop_front();							// Deletes order from its list
+
+					--asks_depth;
+
+					// Delete the ask order from index_map
+					index_map.erase(new_id);
+
+					// Check whether the key-value pair's list is empty
+					if (asks.begin()->second.empty())
+					{
+						// If the list of orders is empty, delete the price associated with it
+						asks.erase(asks.begin());
+					}
+				}
+				else if (temp_quantity < asks.begin()->second.front().quantity)
+				{
+					to_add = { 0 };
+					asks.begin()->second.front().quantity -= temp_quantity;		// New order has a lesser quantity than target order
+				}
+				else
+				{
+					to_add = { 0 };
+
+					--asks_depth;
+
+					// Delete the ask order from index_map
+					index_map.erase(new_id);
+
+					// Check whether the key-value pair's list is empty
+					if (asks.begin()->second.empty())
+					{
+						// If the list of orders is empty, delete the price associated with it
+						asks.erase(asks.begin());
+					}
+				}
+			}
+			if (to_add)
+			{
+				bids[limit_price].push_back(new_order);
+				// Iterator of new bid is retrieved and stored for fast lookup
+				auto it{ std::prev(bids[limit_price].end()) };
+
+				index_map[new_id] = { 1, limit_price, it };
+				++bids_depth;
+			}
 		}
 		else
 		{
-			asks[limit_price].push_back(new_order);
-			// Iterator of new ask is retrieved and stored for fast lookup
-			auto it{ std::prev(asks[limit_price].end()) };
+			// Order matching logic
 
-			index_map[new_id] = { 0, limit_price, it };
-			++asks_depth;
+			auto temp_quantity = quantity;										// Keeps track of current order's quantity without continuously updating
+			// Ensures that as long as the spread is crossed and there are orders, they will be matched
+			while (!bids.begin()->second.empty() && limit_price >= bids.begin()->first && to_add)
+			{
+				if (temp_quantity > bids.begin()->second.front().quantity)		// New order has a greater quantity than target order
+				{
+					temp_quantity -= bids.begin()->second.front().quantity;		// Subtract from the quantity of the current order as its quantity > 0
+					bids.begin()->second.pop_front();							// Deletes order from its list
+
+					--bids_depth;
+
 					// Delete the bid order from index_map
+					index_map.erase(new_id);
 
+					// Check whether the key-value pair's list is empty
+					if (bids.begin()->second.empty())
+					{
+						// If the list of orders is empty, delete the price associated with it
+						bids.erase(bids.begin());
+					}
+				}
+				else if (temp_quantity < bids.begin()->second.front().quantity)
+				{
+					to_add = { 0 };
+					bids.begin()->second.front().quantity -= temp_quantity;		// New order has a lesser quantity than target order
+				}
+				else
+				{
+					to_add = { 0 };
 
+					--bids_depth;
+
+					// Delete the bid order from index_map
+					index_map.erase(new_id);
+
+					// Check whether the key-value pair's list is empty
+					if (bids.begin()->second.empty())
+					{
+						// If the list of orders is empty, delete the price associated with it
+						bids.erase(bids.begin());
+					}
+				}
+			}
+			if (to_add)
+			{
+				asks[limit_price].push_back(new_order);
+				// Iterator of new ask is retrieved and stored for fast lookup
+				auto it{ std::prev(asks[limit_price].end()) };
+
+				index_map[new_id] = { 0, limit_price, it };
+				++asks_depth;
+			}
 		}
 	}
 	else
