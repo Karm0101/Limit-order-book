@@ -49,11 +49,11 @@ void accept_order(bool is_buy, unsigned short quantity, bool is_limit, float lim
 
 		if (is_buy)
 		{
-			// Order matching logic
+			// Order matching logic for bid orders
 
 			auto temp_quantity = quantity;										// Keeps track of current order's quantity without continuously updating
 			// Ensures that as long as the spread is crossed and there are orders, they will be matched
-			while (!asks.begin()->second.empty() && limit_price >= asks.begin()->first && to_add)
+			while (!asks.empty() && !asks.begin()->second.empty() && limit_price >= asks.begin()->first && to_add)
 			{
 				if (temp_quantity > asks.begin()->second.front().quantity)		// New order has a greater quantity than target order
 				{
@@ -106,11 +106,11 @@ void accept_order(bool is_buy, unsigned short quantity, bool is_limit, float lim
 		}
 		else
 		{
-			// Order matching logic
+			// Order matching logic for ask orders
 
 			auto temp_quantity = quantity;										// Keeps track of current order's quantity without continuously updating
 			// Ensures that as long as the spread is crossed and there are orders, they will be matched
-			while (!bids.begin()->second.empty() && limit_price >= bids.begin()->first && to_add)
+			while (!bids.empty() && !bids.begin()->second.empty() && limit_price <= bids.begin()->first && to_add)
 			{
 				if (temp_quantity > bids.begin()->second.front().quantity)		// New order has a greater quantity than target order
 				{
