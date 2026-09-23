@@ -14,7 +14,6 @@ struct Order
 	unsigned short quantity{};
 	bool is_limit{};
 	float limit_price{};
-	std::uint64_t timestamp{}; // 64 bits is used due to storing large numbers
 };
 
 // Used to make finding each order more efficient, i.e. O(1) time complexity
@@ -37,9 +36,9 @@ unsigned int bids_depth { 0 };
 unsigned int asks_depth { 0 };
 
 // Accepts and stores orders in their correct map, depending on their side
-void accept_order(bool is_buy, unsigned short quantity, bool is_limit, float limit_price, std::uint64_t timestamp)
+void accept_order(bool is_buy, unsigned short quantity, bool is_limit, float limit_price)
 {
-	Order new_order{ new_id, is_buy, quantity, is_limit, limit_price, timestamp };
+	Order new_order { new_id, is_buy, quantity, is_limit, limit_price };
 
 	if (is_limit)
 	{
@@ -50,7 +49,6 @@ void accept_order(bool is_buy, unsigned short quantity, bool is_limit, float lim
 			auto it{ std::prev(bids[limit_price].end()) };
 
 			index_map[new_id] = { 1, limit_price, it };
-			++bids_depth;
 		}
 		else
 		{
@@ -60,6 +58,8 @@ void accept_order(bool is_buy, unsigned short quantity, bool is_limit, float lim
 
 			index_map[new_id] = { 0, limit_price, it };
 			++asks_depth;
+					// Delete the bid order from index_map
+
 
 		}
 	}
