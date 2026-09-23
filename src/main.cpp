@@ -3,6 +3,7 @@
 #include <functional>
 #include <optional>
 #include <cstdint>
+#include <string>
 #include <iostream>
 
 // Represents each processed order
@@ -192,6 +193,24 @@ void cancel_order(unsigned int id)
 
 	// Delete the order from index_map
 	index_map.erase(id);
+}
+
+// Changes an associated feature of an active resting order
+bool change_order_feature(unsigned int id, std::string feature, unsigned int amount)
+{
+	if (feature == "quantity" && amount > 0)
+	{
+		index_map[id].c_it->quantity = amount;
+	}
+	else if (feature == "price" && amount > 0)
+	{
+		index_map[id].c_it->limit_price = amount;
+	}
+	else
+	{
+		return 0;
+	}
+	return 1;
 }
 
 // Calculates the difference between the highest bid and the lowest ask
