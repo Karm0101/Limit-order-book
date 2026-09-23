@@ -1,6 +1,7 @@
 #include <list>
 #include <map>
 #include <functional>
+#include <optional>
 #include <cstdint>
 #include <iostream>
 
@@ -71,8 +72,14 @@ void accept_order(bool is_buy, unsigned short quantity, bool is_limit, float lim
 }
 
 // Calculates the difference between the highest bid and the lowest ask
-float calculate_spread()
+std::optional<float> calculate_spread()
 {
+	// Check if either maps are empty
+	if (bids.empty() || asks.empty())
+	{
+		// If one of the maps is empty, indicate no value is returned
+		return std::nullopt;
+	}
 	// As bids and asks are stored in their respective maps, the highest bid is always
 	// the first pair in its map, and vice-versa for the lowest ask
 	float highest_bid{ bids.begin()->first };
@@ -92,7 +99,12 @@ int calculate_depth()
 // Outputs the spread and order depth to the console
 void book_info()
 {
-	std::cout << "Spread: " << calculate_spread() << '\n';
+	std::optional<float> spread{ calculate_spread() };
+
+	if (spread.has_value()) // Spread is only displayed if it exists
+	{
+		std::cout << "Spread: " << *spread << '\n';
+	}
 	std::cout << "Order depth: " << calculate_depth() << '\n';
 }
 
