@@ -210,6 +210,44 @@ bool change_order_feature(unsigned int id, std::string feature, unsigned int amo
 	}
 	else if (feature == "price" && amount > 0)
 	{
+		// Create an updated order that stores the to-be-deleted order's main details
+		Order temp_order{ id, index_map[id].is_buy, index_map[id].c_it->quantity, index_map[id].c_it->is_limit, amount };
+
+		if (index_map[id].is_buy)
+		{
+			// Order is removed from its price list in bids
+			bids[index_map[id].limit_price].erase(index_map[id].c_it);
+			
+			// If empty, delete the limit price list from the order's map
+			if (bids[index_map[id].limit_price].empty())
+			{
+				bids.erase((index_map[id].limit_price));
+			}
+
+			bids[amount].push_back(temp_order);
+			// Iterator of bid is retrieved as it changed
+			auto it{ std::prev(bids[amount].end()) };
+
+			index_map[id].c_it = it;
+		}
+		else
+		{
+			// Order is removed from its price list in asks
+			asks[index_map[id].limit_price].erase(index_map[id].c_it);
+
+			// If empty, delete the limit price list from the order's map
+			if (asks[index_map[id].limit_price].empty())
+			{
+				asks.erase((index_map[id].limit_price));
+			}
+
+			asks[amount].push_back(temp_order);
+			// Iterator of ask is retrieved as it changed
+			auto it{ std::prev(asks[amount].end()) };
+
+			index_map[id].c_it = it;
+		}
+		// This is done last as the old limit price is still needed
 		index_map[id].c_it->limit_price = amount;
 	}
 	else
