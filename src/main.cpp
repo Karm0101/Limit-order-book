@@ -180,7 +180,10 @@ void cancel_order(unsigned int id)
 		--bids_depth;
 
 		// If empty, delete the limit price list from the order's map
-		bids.erase((index_map[id].limit_price));
+		if (bids[index_map[id].limit_price].empty())
+		{
+			bids.erase((index_map[id].limit_price));
+		}
 	}
 	else
 	{
@@ -188,7 +191,10 @@ void cancel_order(unsigned int id)
 		--asks_depth;
 
 		// If empty, delete the limit price list from the order's map
-		asks.erase((index_map[id].limit_price));
+		if (asks[index_map[id].limit_price].empty())
+		{
+			asks.erase((index_map[id].limit_price));
+		}
 	}
 
 	// Delete the order from index_map
